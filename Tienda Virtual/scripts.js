@@ -168,3 +168,145 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Compra realizada con éxito. El carrito ha sido vaciado.');
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const cartItemsElement = document.querySelector('#cart-items tbody');
+    const totalPriceElement = document.getElementById('total-price');
+    let totalPrice = 0;
+    let cart = [];
+
+    // Función para actualizar el carrito en la interfaz
+    function updateCart() {
+        cartItemsElement.innerHTML = '';
+        totalPrice = 0;
+
+        // Obtener el carrito desde localStorage
+        const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart = storedCart;
+
+        // Recorrer cada elemento en el carrito
+        cart.forEach(item => {
+            // Crear fila de tabla para el artículo del carrito
+            const row = document.createElement('tr');
+
+            // Crear celda para la imagen del producto
+            const imageCell = document.createElement('td');
+            const productImage = document.createElement('img');
+            productImage.src = item.image;
+            productImage.classList.add('product-image');
+            productImage.alt = item.name;
+            imageCell.appendChild(productImage);
+
+            // Crear celda para el nombre del producto
+            const nameCell = document.createElement('td');
+            const itemName = document.createElement('span');
+            itemName.textContent = item.name;
+            nameCell.appendChild(itemName);
+
+            // Crear celda para el precio del producto
+            const priceCell = document.createElement('td');
+            const itemPrice = document.createElement('span');
+            itemPrice.textContent = `L ${item.price.toFixed(2)}`;
+            priceCell.appendChild(itemPrice);
+
+            // Crear celda para la cantidad del producto
+            const quantityCell = document.createElement('td');
+            const itemQuantity = document.createElement('input');
+            itemQuantity.type = 'number';
+            itemQuantity.value = item.quantity;
+            itemQuantity.min = 1;
+            itemQuantity.addEventListener('change', () => {
+                updateQuantity(item.id, itemQuantity.value);
+            });
+            quantityCell.appendChild(itemQuantity);
+
+            // Crear celda para el subtotal del producto
+            const subtotalCell = document.createElement('td');
+            const itemSubtotal = document.createElement('span');
+            itemSubtotal.textContent = `L ${(item.price * item.quantity).toFixed(2)}`;
+            subtotalCell.appendChild(itemSubtotal);
+
+            // Crear celda para el botón de eliminar
+            const removeCell = document.createElement('td');
+            const removeButton = document.createElement('button');
+            removeButton.textContent = '✖';
+            removeButton.classList.add('remove-button');
+            removeButton.addEventListener('click', () => {
+                removeFromCart(item.id);
+            });
+            removeCell.appendChild(removeButton);
+
+            // Añadir celdas a la fila
+            row.appendChild(imageCell);
+            row.appendChild(nameCell);
+            row.appendChild(priceCell);
+            row.appendChild(quantityCell);
+            row.appendChild(subtotalCell);
+            row.appendChild(removeCell);
+
+            // Añadir fila a la tabla
+            cartItemsElement.appendChild(row);
+
+            // Calcular el precio total
+            totalPrice += item.price * item.quantity;
+        });
+
+        // Actualizar el precio total en la interfaz
+        totalPriceElement.textContent = `L ${totalPrice.toFixed(2)}`;
+    }
+
+    // Función para actualizar la cantidad de un producto en el carrito
+    function updateQuantity(productId, newQuantity) {
+        const updatedCart = cart.map(item => {
+            if (item.id === productId) {
+                item.quantity = parseInt(newQuantity);
+            }
+            return item;
+        });
+
+        // Guardar el carrito actualizado en localStorage
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+        // Actualizar la visualización del carrito
+        updateCart();
+    }
+// Función para formatear el precio con comas y moneda
+function formatPrice(price) {
+return price.toLocaleString('es-HN', { style: 'currency', currency: 'HNL' });
+}
+
+// Al cargar la página, asegúrate de mostrar los productos del carrito si hay alguno guardado
+updateCart();
+
+// Agregar evento para el botón de "Realizar Compra"
+const realizarCompraButton = document.querySelector('.realizar-compra');
+realizarCompraButton.addEventListener('click', vaciarCarrito);
+
+function vaciarCarrito() {
+// Vaciar el array del carrito
+cart = [];
+
+// Remover el carrito del localStorage
+localStorage.removeItem('cart');
+
+// Actualizar la visualización del carrito
+updateCart();
+
+// Mostrar mensaje de confirmación (opcional)
+alert('Compra realizada con éxito. El carrito ha sido vaciado.');
+}
+// Función para eliminar un producto del carrito
+    function removeFromCart(productId) {
+        // Filtrar el producto del carrito
+        cart = cart.filter(item => item.id !== productId);
+
+        // Guardar el carrito actualizado en localStorage
+        localStorage.setItem('cart', JSON.stringify(cart));
+
+        // Actualizar la visualización del carrito
+        updateCart();
+    }
+
+    // Cargar el carrito desde localStorage al cargar la página
+    updateCart();
+});
+
